@@ -175,7 +175,6 @@ const Chart = ({ data, modifyKeyWithData, dataKey }) => {
           </label>
           <input
             ref={timeRef}
-            type="text"
             min="0"
             type="number"
             id="time"
@@ -193,7 +192,6 @@ const Chart = ({ data, modifyKeyWithData, dataKey }) => {
           </label>
           <input
             ref={bwRef}
-            type="text"
             min="0"
             type="number"
             id="bw"
