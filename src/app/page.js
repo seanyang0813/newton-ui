@@ -87,7 +87,7 @@ export default function Home() {
     if (generated) {
       setLastValidCode(generated)
       setCode(generated)
-      toast.success('Generated to clipboard!', {
+      toast.success('Generated!', {
         position: "bottom-center",
         autoClose: 5000,
         hideProgressBar: false,
