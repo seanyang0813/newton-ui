@@ -1,113 +1,213 @@
-import Image from 'next/image'
+"use client";
+import Image from "next/image";
+import Chart from "../components/chart";
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import "@uiw/react-textarea-code-editor/dist.css";
+import { parseJsonToDict, reconstructJson } from "../app/parser";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+const CodeEditor = dynamic(
+  () => import("@uiw/react-textarea-code-editor").then((mod) => mod.default),
+  { ssr: false }
+);
+
+const example = `{
+  "profile": [
+    {
+      "audio": {
+        "send": true
+      },
+      "network": {
+        "bw_kbps": 1000,
+        "delay_ms": 200,
+        "jitter_ms": 0
+      },
+      "time_ms": 0,
+      "video": {
+        "randomized": true,
+        "send": true,
+        "utilization_pct": 100
+      }
+    },
+    {
+      "network": {
+        "bw_kbps": 50
+      },
+      "time_ms": 45000
+    },
+    {
+      "network": {
+        "bw_kbps": 1000
+      },
+      "time_ms": 90000
+    },
+    {
+      "network": {
+        "bw_kbps": 50
+      },
+      "time_ms": 135000
+    },
+    {
+      "network": {
+        "bw_kbps": 1000
+      },
+      "time_ms": 180000
+    },
+    {
+      "network": {
+        "bw_kbps": 50
+      },
+      "time_ms": 225000
+    }
+  ],
+  "seed": 12345
+}`;
 
 export default function Home() {
+  const [code, setCode] = useState(example);
+  const [data, setData] = useState(parseJsonToDict(example));
+  const [lastValidCode, setLastValidCode] = useState(example)
+
+  function modifyKeyWithData(key, new_value) {
+    // find the key's reference in data
+    if (data.hasOwnProperty(key)) {
+      // do a spread and do setState to update the data
+      setData((old) => {
+        const new_state = { ...old };
+        new_state[key] = new_value;
+        return new_state;
+      });
+    }
+  }
+
+  function regenJson() {
+    let generated = reconstructJson(data, lastValidCode)
+    if (generated) {
+      setLastValidCode(generated)
+      setCode(generated)
+      toast.success('Generated to clipboard!', {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        });
+    }
+  }
+
+  function copyToClipboard() {
+    navigator.clipboard.writeText(code)
+    toast.success('Copied!', {
+      position: "bottom-center",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light",
+      });
+  }
+
+  function updateCharts() {
+    // setData(parseJsonToDict(evn.target.value).bw_kbps);
+    // only set data if parse json doesn't return error
+    let res = parseJsonToDict(code);
+    if (res !== null) {
+      setData(res);
+      setLastValidCode(code)
+    } else {
+      toast.warn('Invalid Json format', {
+        position: "bottom-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        });
+    }
+  }
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+    <main className="flex min-h-screen items-center justify-between max-h-screen">
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+<ToastContainer
+          position="bottom-center"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
         />
-      </div>
+      <div className="z-10 w-full font-mono text-sm max-h-full">
+        <div className="grid grid-cols-5 p-5 h-screen">
+          <div className="col-span-3 max-h-screen overflow-scroll">
+            {Object.entries(data).map(([key, values]) => {
+              console.log("inside map");
+              console.log(key);
+              console.log(values);
+              return (
+                <Chart
+                  key={key}
+                  data={values}
+                  modifyKeyWithData={modifyKeyWithData}
+                  dataKey={key}
+                />
+              );
+            })}
+          </div>
+          <div className="max-h-screen overflow-scroll col-span-2 m-3 relative rounded-lg">
+            <div className="sticky top-0 z-30 bg-slate-200 border-gray-200 dark:bg-gray-900 flex justify-center">
+              <button
+                onClick={updateCharts}
+                className="mt-3 mb-2 mr-3 bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+              >
+                Update charts
+              </button>
+              <button
+                onClick={regenJson}
+                className="mt-3 mb-2 mr-3 bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+              >
+                Regenerate JSON
+              </button>
+              <button
+                onClick={copyToClipboard}
+                className="mt-3 mb-2 mr-3 bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
+              >
+                Copy to Clipboard
+              </button>
+            </div>
+            <CodeEditor
+              value={code}
+              language="json"
+              placeholder="Paste Json code here..."
+              onChange={(evn) => {
+                setCode(evn.target.value);
+              }}
+              padding={15}
+              style={{
+                fontSize: 12,
+                backgroundColor: "#f5f5f5",
+                fontFamily:
+                  "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+              }}
+            />
+          </div>
+        </div>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
       </div>
     </main>
-  )
+
+  );
 }
