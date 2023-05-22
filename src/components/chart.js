@@ -63,7 +63,7 @@ const Chart = ({ data, modifyKeyWithData, dataKey, maxTime }) => {
       prev = data[i];
     }
     if (res.length > 0) {
-      res.push({x: maxTime, y: data[data.length - 1].y })
+      res.push({x: maxTime + 10000, y: data[data.length - 1].y })
     }
 
     return res;
