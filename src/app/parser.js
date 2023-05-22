@@ -44,13 +44,6 @@ export function parseJsonToDict(jsonData) {
         }
       });
     }
-    if (max_time !== null && max_time > 0) {
-      // if the current object length is >= 1 and last one is not latest time we should add a data point for time with same value
-      for (const [key, values] of Object.entries(result)) {
-        console.log(`${key}:`, values);
-        values.push({ x: max_time, y: values[values.length - 1].y });
-      }
-    }
 
     console.log("test");
     console.log(result);

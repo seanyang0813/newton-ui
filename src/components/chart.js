@@ -26,28 +26,7 @@ const CodeEditor = dynamic(
   { ssr: false }
 );
 
-function mapData(data) {
-  const res = [];
-  let prev = null;
-  if (!data) {
-    return res;
-  }
-  for (let i = 0; i < data.length; i++) {
-    if (i == 0) {
-      res.push(data[i]);
-    } else {
-      if (prev != null && prev != data[i]) {
-        // cache data to draw better lines for the drop to show instaneous drop
-        res.push({ x: data[i].x, y: prev.y });
-        res.push(data[i]);
-      }
-    }
-    prev = data[i];
-  }
-  return res;
-}
-
-const Chart = ({ data, modifyKeyWithData, dataKey }) => {
+const Chart = ({ data, modifyKeyWithData, dataKey, maxTime }) => {
   const [label, setLabel] = useState(null);
   const [payloadData, setPayloadData] = useState(null);
   const [lastClickedX, setLastClickedX] = useState(null);
@@ -63,6 +42,31 @@ const Chart = ({ data, modifyKeyWithData, dataKey }) => {
       setLabel(payload.activeLabel);
       setPayloadData(payload.activePayload[0].dataKey);
     }
+  }
+
+  function mapData(data) {
+    const res = [];
+    let prev = null;
+    if (!data) {
+      return res;
+    }
+    for (let i = 0; i < data.length; i++) {
+      if (i == 0) {
+        res.push(data[i]);
+      } else {
+        if (prev != null && prev != data[i]) {
+          // cache data to draw better lines for the drop to show instaneous drop
+          res.push({ x: data[i].x, y: prev.y });
+          res.push(data[i]);
+        }
+      }
+      prev = data[i];
+    }
+    if (res.length > 0) {
+      res.push({x: maxTime, y: data[data.length - 1].y })
+    }
+
+    return res;
   }
 
   const onClickPoint = (d) => {

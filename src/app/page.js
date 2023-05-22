@@ -4,7 +4,7 @@ import Chart from "../components/chart";
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import "@uiw/react-textarea-code-editor/dist.css";
-import { parseJsonToDict, reconstructJson } from "../app/parser";
+import { parseJsonToDict, reconstructJson, getMaxTime } from "../app/parser";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -69,6 +69,19 @@ export default function Home() {
   const [code, setCode] = useState(example);
   const [data, setData] = useState(parseJsonToDict(example));
   const [lastValidCode, setLastValidCode] = useState(example)
+
+  function getMaxTime() {
+    let res = 0
+    // check last index of each data
+    Object.entries(data).map(([key, values]) => {
+      console.log(values)
+      if (values.length > 0 && values[values.length - 1].x !== undefined) {
+        res = Math.max(res, values[values.length - 1].x)
+      }
+    })
+    console.log("max time is " + res + "ms ")
+    return res
+  }
 
   function modifyKeyWithData(key, new_value) {
     // find the key's reference in data
@@ -163,6 +176,7 @@ export default function Home() {
                   data={values}
                   modifyKeyWithData={modifyKeyWithData}
                   dataKey={key}
+                  maxTime={getMaxTime()}
                 />
               );
             })}
